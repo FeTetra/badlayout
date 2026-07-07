@@ -12,7 +12,9 @@ typedef enum LayoutItemType {
 typedef struct LayoutItem {
     float x, y;
     float w, h;
-    float pad, gap;
+    float pad, gap, weight;
+    
+    int spacer;
     uint32_t color;
 
     LayoutItemType type;
