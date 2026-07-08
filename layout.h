@@ -15,6 +15,16 @@ typedef struct LayoutGlyph {
     float x, y, w, h;
 } LayoutGlyph;
 
+typedef struct LayoutText {
+    char *str;
+    LayoutGlyph *glyphs;
+    size_t len;
+    uint32_t color;
+    float spacing;
+    float size;
+    Font font; // To be changed per-platform
+} LayoutText;
+
 typedef struct LayoutItem {
     float x, y;
     float w, h;
@@ -27,19 +37,13 @@ typedef struct LayoutItem {
     struct LayoutItem *children;
     int child_count;
 
-    char *text;
-    LayoutGlyph *glyphs;
-    size_t text_len;
-    uint32_t text_color;
-    float text_spacing;
-    float font_size;
-    Font font; // To be changed per-platform
+    LayoutText *text;
 } LayoutItem;
 
 void Layout(LayoutItem *item);
 void LayoutRow(LayoutItem *item);
 void LayoutCol(LayoutItem *item);
 
-void LayoutText(LayoutItem *item);
+void LayoutItemText(LayoutItem *item);
 
 #endif // LAYOUT_H

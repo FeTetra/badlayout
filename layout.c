@@ -29,7 +29,7 @@ void LayoutRow(LayoutItem *item) {
         child->h = item->h - (item->pad * 2);
 
         if (child->text) {
-            LayoutText(child);
+            LayoutItemText(child);
         }
 
         if (child->child_count > 0) {
@@ -59,7 +59,7 @@ void LayoutCol(LayoutItem *item) {
         child->w = item->w - (item->pad * 2);
 
         if (child->text) {
-            LayoutText(child);
+            LayoutItemText(child);
         }
 
         if (child->child_count > 0) {
@@ -77,20 +77,22 @@ LayoutGlyph MeasureGlyph(char c, Font font, float font_size) {
 
 // This function expects `item->text` to be an array the size of the string length of `str`
 // This may need to be modified to change how it handles fonts per platform
-void LayoutText(LayoutItem *item) {
+void LayoutItemText(LayoutItem *item) {
+    LayoutText *text = item->text;
+
     float cur_x = item->x + item->pad;
     float cur_y = item->y + item->pad;
-    for (size_t i = 0; i < item->text_len; i++) {
-        LayoutGlyph *glyph = &item->glyphs[i];
-        *glyph = MeasureGlyph(item->text[i], item->font, item->font_size);
+    for (size_t i = 0; i < text->len; i++) {
+        LayoutGlyph *glyph = &text->glyphs[i];
+        *glyph = MeasureGlyph(text->str[i], text->font, text->size);
 
         if (glyph->w > (item->w - (item->pad * 2)) - (cur_x - item->x)) {
             cur_x = item->x + item->pad;
-            cur_y += item->font_size;
+            cur_y += text->size;
         }
 
         glyph->x = cur_x;
         glyph->y = cur_y;
-        cur_x += glyph->w + item->text_spacing;
+        cur_x += glyph->w + text->spacing;
     }
 }
