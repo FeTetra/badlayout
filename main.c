@@ -1,3 +1,4 @@
+#include <string.h>
 #include <raylib.h>
 
 #include "layout.h"
@@ -16,7 +17,24 @@ void RenderLayout(LayoutItem *layout) {
     if (!layout->spacer) {
         Vector2 rect_pos = {layout->x, layout->y};
         Vector2 rect_size = {layout->w, layout->h};
-        DrawRectangleV(rect_pos, rect_size, U32ToRaylibColor(layout->color));
+        DrawRectangleV(
+            rect_pos, 
+            rect_size, 
+            U32ToRaylibColor(layout->color)
+        );
+    }
+    if (layout->text_len > 0) {
+        for (size_t i = 0; i < layout->text_len; i++) {
+            LayoutGlyph *glyph = &layout->glyphs[i];
+            Vector2 rect_pos = {glyph->x, glyph->y};
+            DrawTextCodepoint(
+                layout->font, 
+                layout->text[i], 
+                rect_pos, 
+                layout->font_size, 
+                U32ToRaylibColor(layout->text_color)
+            );
+        }
     }
     for (int i = 0; i < layout->child_count; i++) {
         RenderLayout(&layout->children[i]);
@@ -31,6 +49,8 @@ int main() {
     InitWindow(SCREEN_WITDH, SCREEN_HEIGHT, "Layout Test");
     SetTargetFPS(FRAMERATE);
 
+    Font font = GetFontDefault();
+
     LayoutItem form = {
         .x = 0,
         .y = 0,
@@ -43,28 +63,38 @@ int main() {
     };
 
     LayoutItem children[3] = {
-        {.weight = 1, .spacer = 1},
-        {.color = RaylibColorToU32(GREEN), .weight = 1},
-        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 2},
+        {.weight = 1, .spacer = 1, .text_len = 0},
+        {.color = RaylibColorToU32(GREEN), .weight = 1, .pad = 5},
+        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 2, .text_len = 0},
     };
     form.children = children;
     form.child_count = 3;
 
     LayoutItem spacer_children[2] = {
-        {.spacer = 1, .weight = 1},
-        {.type = LAYOUT_ROW, .color = RaylibColorToU32(RED), .weight = 1},
+        {.spacer = 1, .weight = 1, .text_len = 0},
+        {.type = LAYOUT_ROW, .color = RaylibColorToU32(RED), .weight = 1, .text_len = 0},
     };
     form.children[0].children = spacer_children;
     form.children[0].child_count = 2;
     form.children[0].type = LAYOUT_COL;
 
     LayoutItem sub_children[3] = {
-        {.color = RaylibColorToU32(VIOLET), .weight = 1},
-        {.color = RaylibColorToU32(ORANGE), .weight = 1},
-        {.color = RaylibColorToU32(LIME), .weight = 1},
+        {.color = RaylibColorToU32(VIOLET), .weight = 1, .text_len = 0},
+        {.color = RaylibColorToU32(ORANGE), .weight = 1, .text_len = 0},
+        {.color = RaylibColorToU32(LIME), .weight = 1, .text_len = 0},
     };
     form.children[2].children = sub_children;
     form.children[2].child_count = 3;
+
+    form.children[1].text = "badlayout text";
+    size_t text_len = strlen(form.children[1].text);
+    LayoutGlyph glyphs[text_len];
+    form.children[1].glyphs = glyphs;
+    form.children[1].text_len = text_len;
+    form.children[1].font = font;
+    form.children[1].font_size = 24;
+    form.children[1].text_color = RaylibColorToU32(BLACK);
+    form.children[1].text_spacing = 2;
 
     Layout(&form);
 
