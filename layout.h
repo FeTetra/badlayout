@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <ctype.h>
 #include <raylib.h>
 
 typedef enum LayoutItemType {
@@ -15,6 +16,18 @@ typedef struct LayoutGlyph {
     float x, y, w, h;
 } LayoutGlyph;
 
+typedef enum TextWrap {
+    LETTER,
+    WORD,
+    NONE,
+} TextWrap;
+
+typedef enum TextAlign {
+    LEFT,
+    RIGHT,
+    CENTER,
+} TextAlign;
+
 typedef struct LayoutText {
     char *str;
     LayoutGlyph *glyphs;
@@ -22,6 +35,8 @@ typedef struct LayoutText {
     uint32_t color;
     float spacing;
     float size;
+    TextAlign align;
+    TextWrap wrap;
     Font font; // To be changed per-platform
 } LayoutText;
 
@@ -44,6 +59,6 @@ void Layout(LayoutItem *item);
 void LayoutRow(LayoutItem *item);
 void LayoutCol(LayoutItem *item);
 
-void LayoutItemText(LayoutItem *item);
+void LayoutItemGlyphs(LayoutItem *item);
 
 #endif // LAYOUT_H

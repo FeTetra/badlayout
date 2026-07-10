@@ -1,5 +1,6 @@
 #include <string.h>
 #include <raylib.h>
+#include <stdio.h>
 
 #include "layout.h"
 
@@ -61,33 +62,34 @@ int main() {
         .gap = 5,
         .type = LAYOUT_ROW,
         .color = RaylibColorToU32(BLACK),
+        .text = NULL,
     };
 
     LayoutItem children[3] = {
-        {.weight = 1, .spacer = 1},
+        {.weight = 1, .spacer = 1, .text = NULL,},
         {.color = RaylibColorToU32(GREEN), .weight = 1, .pad = 5},
-        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 2},
+        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 2, .text = NULL,},
     };
     form.children = children;
     form.child_count = 3;
 
     LayoutItem spacer_children[2] = {
-        {.spacer = 1, .weight = 1},
-        {.type = LAYOUT_ROW, .color = RaylibColorToU32(RED), .weight = 1},
+        {.spacer = 1, .weight = 1, .text = NULL,},
+        {.type = LAYOUT_ROW, .color = RaylibColorToU32(RED), .weight = 1, .text = NULL,},
     };
     form.children[0].children = spacer_children;
     form.children[0].child_count = 2;
     form.children[0].type = LAYOUT_COL;
 
     LayoutItem sub_children[3] = {
-        {.color = RaylibColorToU32(VIOLET), .weight = 1},
-        {.color = RaylibColorToU32(ORANGE), .weight = 1},
-        {.color = RaylibColorToU32(LIME), .weight = 1},
+        {.color = RaylibColorToU32(VIOLET), .weight = 1, .text = NULL,},
+        {.color = RaylibColorToU32(ORANGE), .weight = 1, .text = NULL,},
+        {.color = RaylibColorToU32(LIME), .weight = 1, .text = NULL,},
     };
     form.children[2].children = sub_children;
     form.children[2].child_count = 3;
 
-    char *message = "Here is a sentence using badlayout's text layout system.";
+    char *message = "Here are words";
     size_t len = strlen(message);
     LayoutGlyph glyphs[len];
     LayoutText text = {
@@ -97,6 +99,8 @@ int main() {
         .font = font,
         .size = 24,
         .color = RaylibColorToU32(BLACK),
+        .align = CENTER,
+        .wrap = WORD,
         .spacing = 2,
     };
     form.children[1].text = &text;

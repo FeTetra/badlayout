@@ -29,7 +29,7 @@ void LayoutRow(LayoutItem *item) {
         child->h = item->h - (item->pad * 2);
 
         if (child->text) {
-            LayoutItemText(child);
+            LayoutItemGlyphs(child);
         }
 
         if (child->child_count > 0) {
@@ -59,7 +59,7 @@ void LayoutCol(LayoutItem *item) {
         child->w = item->w - (item->pad * 2);
 
         if (child->text) {
-            LayoutItemText(child);
+            LayoutItemGlyphs(child);
         }
 
         if (child->child_count > 0) {
@@ -68,31 +68,66 @@ void LayoutCol(LayoutItem *item) {
     }
 }
 
+typedef struct GlyphLine {
+    int glyph_count;
+    float length;
+} GlyphLine;
+
 // This function should be modified for whatever text renderer you use, this is for raylib
-LayoutGlyph MeasureGlyph(char c, Font font, float font_size) {
-    Rectangle size = GetGlyphAtlasRec(font, c);
-    float scale = font_size / font.baseSize;
+LayoutGlyph MeasureGlyph(LayoutText *text, char c) {
+    Rectangle size = GetGlyphAtlasRec(text->font, c);
+    float scale = text->size / text->font.baseSize;
     return (LayoutGlyph){.w = size.width * scale, .h = size.height * scale};
 }
 
-// This function expects `item->text` to be an array the size of the string length of `str`
-// This may need to be modified to change how it handles fonts per platform
-void LayoutItemText(LayoutItem *item) {
+// TODO: Do a MeasureGlyph pass for word wrap so we don't remeasure glyphs when walking back
+GlyphLine MeasureGlyphLine(LayoutItem *item, int *start_idx) {
+    LayoutText *text = item->text;
+    GlyphLine result;
+
+    float remaining = (item->w - (item->pad * 2));
+    float total_len = 0;
+
+    int i = *start_idx;
+    while (i < text->len) {
+        text->glyphs[i] = MeasureGlyph(text, text->str[i]);
+        
+        if (text->glyphs[i].w + text->spacing > remaining - total_len) {
+            break;
+        }
+
+        total_len += text->glyphs[i].w + text->spacing;
+
+        i++;
+    }
+
+    result.glyph_count = i - *start_idx;
+    result.length = total_len;
+    *start_idx = i;
+
+    return result;
+}
+
+void LayoutItemGlyphs(LayoutItem *item) {
     LayoutText *text = item->text;
 
     float cur_x = item->x + item->pad;
     float cur_y = item->y + item->pad;
-    for (size_t i = 0; i < text->len; i++) {
-        LayoutGlyph *glyph = &text->glyphs[i];
-        *glyph = MeasureGlyph(text->str[i], text->font, text->size);
 
-        if (glyph->w > (item->w - (item->pad * 2)) - (cur_x - item->x)) {
-            cur_x = item->x + item->pad;
-            cur_y += text->size;
+    for (int i = 0; i < text->len;) {
+        int start = i;
+        GlyphLine line = MeasureGlyphLine(item, &i);
+
+        for (int j = start; j - start < line.glyph_count; j++) {
+            LayoutGlyph *glyph = &text->glyphs[j];
+
+            glyph->x = cur_x;
+            glyph->y = cur_y;
+
+            cur_x += glyph->w + text->spacing;
         }
 
-        glyph->x = cur_x;
-        glyph->y = cur_y;
-        cur_x += glyph->w + text->spacing;
+        cur_y += text->size;
+        cur_x = item->x + item->pad;
     }
 }
