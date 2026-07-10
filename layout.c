@@ -88,12 +88,38 @@ GlyphLine MeasureGlyphLine(LayoutItem *item, int *start_idx) {
     float remaining = (item->w - (item->pad * 2));
     float total_len = 0;
 
+    int nonspace_count = 0;
+    float word_len = 0;
+
     int i = *start_idx;
     while (i < text->len) {
         text->glyphs[i] = MeasureGlyph(text, text->str[i]);
-        
-        if (text->glyphs[i].w + text->spacing > remaining - total_len) {
-            break;
+
+        if (text->wrap == LETTER) {
+            if (text->glyphs[i].w + text->spacing > remaining - total_len) {
+                break;
+            }
+        }
+
+        if (text->wrap == WORD) {
+            if (!isspace(text->str[i])) {
+                word_len += text->glyphs[i].w + text->spacing;
+                nonspace_count++;
+            } else {
+                word_len = 0; 
+                nonspace_count = 0;
+            }
+
+            if (word_len > remaining - (total_len - word_len)) {
+                total_len -= word_len;
+                
+                if (word_len > remaining) {
+                    break; // Word longer than all remaining space, just cut it
+                }
+
+                i -= nonspace_count - 1; // Jump back to beginning of word
+                break;
+            }
         }
 
         total_len += text->glyphs[i].w + text->spacing;
@@ -111,12 +137,20 @@ GlyphLine MeasureGlyphLine(LayoutItem *item, int *start_idx) {
 void LayoutItemGlyphs(LayoutItem *item) {
     LayoutText *text = item->text;
 
-    float cur_x = item->x + item->pad;
+    float cur_x = 0;
     float cur_y = item->y + item->pad;
 
     for (int i = 0; i < text->len;) {
         int start = i;
         GlyphLine line = MeasureGlyphLine(item, &i);
+
+        if (text->align == LEFT) {
+            cur_x = item->x + item->pad;
+        } else if (text->align == RIGHT) {
+            cur_x = (item->x + (item->w - line.length));
+        } else if (text->align == CENTER) {
+            cur_x = item->x + ((item->w - line.length) / 2);
+        }
 
         for (int j = start; j - start < line.glyph_count; j++) {
             LayoutGlyph *glyph = &text->glyphs[j];
@@ -128,6 +162,5 @@ void LayoutItemGlyphs(LayoutItem *item) {
         }
 
         cur_y += text->size;
-        cur_x = item->x + item->pad;
     }
 }

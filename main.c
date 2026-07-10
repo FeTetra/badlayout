@@ -66,30 +66,30 @@ int main() {
     };
 
     LayoutItem children[3] = {
-        {.weight = 1, .spacer = 1, .text = NULL,},
+        {.weight = 1, .spacer = 1,},
         {.color = RaylibColorToU32(GREEN), .weight = 1, .pad = 5},
-        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 2, .text = NULL,},
+        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 2,},
     };
     form.children = children;
     form.child_count = 3;
 
     LayoutItem spacer_children[2] = {
-        {.spacer = 1, .weight = 1, .text = NULL,},
-        {.type = LAYOUT_ROW, .color = RaylibColorToU32(RED), .weight = 1, .text = NULL,},
+        {.spacer = 1, .weight = 1,},
+        {.type = LAYOUT_ROW, .color = RaylibColorToU32(RED), .weight = 1,},
     };
     form.children[0].children = spacer_children;
     form.children[0].child_count = 2;
     form.children[0].type = LAYOUT_COL;
 
     LayoutItem sub_children[3] = {
-        {.color = RaylibColorToU32(VIOLET), .weight = 1, .text = NULL,},
-        {.color = RaylibColorToU32(ORANGE), .weight = 1, .text = NULL,},
-        {.color = RaylibColorToU32(LIME), .weight = 1, .text = NULL,},
+        {.color = RaylibColorToU32(VIOLET), .weight = 1,},
+        {.color = RaylibColorToU32(ORANGE), .weight = 1,},
+        {.color = RaylibColorToU32(LIME), .weight = 1,},
     };
     form.children[2].children = sub_children;
     form.children[2].child_count = 3;
 
-    char *message = "Here are words";
+    char *message = "this is an example of word wrapping with badlayout";
     size_t len = strlen(message);
     LayoutGlyph glyphs[len];
     LayoutText text = {
@@ -99,7 +99,7 @@ int main() {
         .font = font,
         .size = 24,
         .color = RaylibColorToU32(BLACK),
-        .align = CENTER,
+        .align = RIGHT,
         .wrap = WORD,
         .spacing = 2,
     };
