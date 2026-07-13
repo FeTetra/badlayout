@@ -28,7 +28,7 @@ void RenderLayout(LayoutItem *layout) {
         LayoutText *text = layout->text;
         for (size_t i = 0; i < text->len; i++) {
             LayoutGlyph *glyph = &text->glyphs[i];
-            Vector2 rect_pos = {glyph->x, glyph->y};
+            Vector2 rect_pos = {glyph->x + text->offset_x, glyph->y + text->offset_y};
             DrawTextCodepoint(
                 text->font, 
                 text->str[i], 
@@ -67,8 +67,8 @@ int main() {
 
     LayoutItem children[3] = {
         {.weight = 1, .spacer = 1,},
-        {.color = RaylibColorToU32(GREEN), .weight = 1, .pad = 5},
-        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 2,},
+        {.color = RaylibColorToU32(GREEN), .weight = 2, .pad = 5},
+        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 1,},
     };
     form.children = children;
     form.child_count = 3;
@@ -99,7 +99,8 @@ int main() {
         .font = font,
         .size = 24,
         .color = RaylibColorToU32(BLACK),
-        .align = RIGHT,
+        .align = AL_LEFT,
+        .anchor = AN_TB | AN_LR,
         .wrap = WORD,
         .spacing = 2,
     };

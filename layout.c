@@ -112,7 +112,7 @@ GlyphLine MeasureGlyphLine(LayoutItem *item, int *start_idx) {
 
             if (word_len > remaining - (total_len - word_len)) {
                 total_len -= word_len;
-                
+
                 if (word_len > remaining) {
                     break; // Word longer than all remaining space, just cut it
                 }
@@ -140,16 +140,28 @@ void LayoutItemGlyphs(LayoutItem *item) {
     float cur_x = 0;
     float cur_y = item->y + item->pad;
 
+    float total_w = 0;
+    float total_h = 0;
+    float min_x = (item->x + item->w) - (item->pad * 2);
+
     for (int i = 0; i < text->len;) {
         int start = i;
         GlyphLine line = MeasureGlyphLine(item, &i);
 
-        if (text->align == LEFT) {
+        if (line.length > total_w) {
+            total_w = line.length;
+        }
+
+        if (text->align == AL_LEFT) {
             cur_x = item->x + item->pad;
-        } else if (text->align == RIGHT) {
+        } else if (text->align == AL_RIGHT) {
             cur_x = (item->x + (item->w - line.length));
-        } else if (text->align == CENTER) {
+        } else if (text->align == AL_CENTER) {
             cur_x = item->x + ((item->w - line.length) / 2);
+        }
+
+        if (cur_x < min_x) {
+            min_x = cur_x;
         }
 
         for (int j = start; j - start < line.glyph_count; j++) {
@@ -163,4 +175,13 @@ void LayoutItemGlyphs(LayoutItem *item) {
 
         cur_y += text->size;
     }
+
+    total_h = cur_y; // For readability's sake
+
+    // A bit ugly because we have to deal with text being aligned to the parent's bounding box
+    float ax = AnchorTable[(text->anchor & (AN_RIGHT | AN_LEFT)) >> 2];
+    text->offset_x = ((item->x + item->pad) + (item->w - total_w) * ax) - min_x;
+
+    float ay = AnchorTable[text->anchor & (AN_TOP | AN_BOTTOM)];
+    text->offset_y = (item->h - total_h) * ay;
 }

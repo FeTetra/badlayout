@@ -23,10 +23,26 @@ typedef enum TextWrap {
 } TextWrap;
 
 typedef enum TextAlign {
-    LEFT,
-    RIGHT,
-    CENTER,
+    AL_LEFT,
+    AL_RIGHT,
+    AL_CENTER,
 } TextAlign;
+
+static const float AnchorTable[] = {
+    0.0, // none
+    0.0, // left | top
+    1.0, // right | bottom
+    0.5, // center
+};
+
+typedef enum Anchor {
+    AN_TOP = 1,
+    AN_BOTTOM = 2,
+    AN_LEFT = 4,
+    AN_RIGHT = 8,
+    AN_TB = 3,
+    AN_LR = 12,
+} Anchor;
 
 typedef struct LayoutText {
     char *str;
@@ -35,7 +51,10 @@ typedef struct LayoutText {
     uint32_t color;
     float spacing;
     float size;
+    float offset_x;
+    float offset_y;
     TextAlign align;
+    Anchor anchor;
     TextWrap wrap;
     Font font; // To be changed per-platform
 } LayoutText;
