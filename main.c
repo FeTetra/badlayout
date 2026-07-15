@@ -3,45 +3,8 @@
 #include <stdio.h>
 
 #include "layout.h"
-
-void RenderLayout(LayoutItem *layout);
-
-Color U32ToRaylibColor(uint32_t color) {
-    return *(Color *)&color;
-}
-
-uint32_t RaylibColorToU32(Color color) {
-    return *(uint32_t *)&color;
-}
-
-void RenderLayout(LayoutItem *layout) {
-    if (!layout->spacer) {
-        Vector2 rect_pos = {layout->x, layout->y};
-        Vector2 rect_size = {layout->w, layout->h};
-        DrawRectangleV(
-            rect_pos, 
-            rect_size, 
-            U32ToRaylibColor(layout->color)
-        );
-    }
-    if (layout->text) {
-        LayoutText *text = layout->text;
-        for (size_t i = 0; i < text->len; i++) {
-            LayoutGlyph *glyph = &text->glyphs[i];
-            Vector2 rect_pos = {glyph->x + text->offset_x, glyph->y + text->offset_y};
-            DrawTextCodepoint(
-                text->font, 
-                text->str[i], 
-                rect_pos, 
-                text->size, 
-                U32ToRaylibColor(text->color)
-            );
-        }
-    }
-    for (int i = 0; i < layout->child_count; i++) {
-        RenderLayout(&layout->children[i]);
-    }
-}
+#include "builder.h"
+#include "renderer_raylib.h"
 
 int main() {
     const int SCREEN_WITDH = 800;
@@ -63,48 +26,46 @@ int main() {
         .type = LAYOUT_ROW,
         .color = RaylibColorToU32(BLACK),
         .text = NULL,
+        .child_count = 3,
+        .children = NewLayoutChildren((LayoutItem[]){
+        {
+            .weight = 1, 
+            .spacer = 1,
+            .child_count = 2,
+            .type = LAYOUT_COL,
+            .children = NewLayoutChildren((LayoutItem[]){
+                {.spacer = 1, .weight = 1,},
+                {.color = RaylibColorToU32(RED), .weight = 1,},
+                }, 2)
+            },
+        {
+            .color = RaylibColorToU32(GREEN), 
+            .weight = 2, 
+            .pad = 5,
+            .text = NewLayoutText(
+                "this is an example of word wrapping with badlayout", 
+                RaylibColorToU32(BLACK), 
+                2, 
+                24, 
+                AL_LEFT, 
+                AN_TB | AN_LR, 
+                WORD, 
+                font)
+            },
+        {
+            .color = RaylibColorToU32(BLUE), 
+            .pad = 5, .gap = 5, 
+            .type = LAYOUT_COL, 
+            .weight = 1,
+            .child_count = 3,
+            .children = NewLayoutChildren((LayoutItem[]){
+                    {.color = RaylibColorToU32(VIOLET), .weight = 1,},
+                    {.color = RaylibColorToU32(ORANGE), .weight = 1,},
+                    {.color = RaylibColorToU32(LIME), .weight = 1,},
+                }, 3)
+            },
+        }, 3)
     };
-
-    LayoutItem children[3] = {
-        {.weight = 1, .spacer = 1,},
-        {.color = RaylibColorToU32(GREEN), .weight = 2, .pad = 5},
-        {.color = RaylibColorToU32(BLUE), .pad = 5, .gap = 5, .type = LAYOUT_COL, .weight = 1,},
-    };
-    form.children = children;
-    form.child_count = 3;
-
-    LayoutItem spacer_children[2] = {
-        {.spacer = 1, .weight = 1,},
-        {.type = LAYOUT_ROW, .color = RaylibColorToU32(RED), .weight = 1,},
-    };
-    form.children[0].children = spacer_children;
-    form.children[0].child_count = 2;
-    form.children[0].type = LAYOUT_COL;
-
-    LayoutItem sub_children[3] = {
-        {.color = RaylibColorToU32(VIOLET), .weight = 1,},
-        {.color = RaylibColorToU32(ORANGE), .weight = 1,},
-        {.color = RaylibColorToU32(LIME), .weight = 1,},
-    };
-    form.children[2].children = sub_children;
-    form.children[2].child_count = 3;
-
-    char *message = "this is an example of word wrapping with badlayout";
-    size_t len = strlen(message);
-    LayoutGlyph glyphs[len];
-    LayoutText text = {
-        .str = message,
-        .glyphs = glyphs,
-        .len = len,
-        .font = font,
-        .size = 24,
-        .color = RaylibColorToU32(BLACK),
-        .align = AL_LEFT,
-        .anchor = AN_TB | AN_LR,
-        .wrap = WORD,
-        .spacing = 2,
-    };
-    form.children[1].text = &text;
 
     Layout(&form);
 
@@ -114,6 +75,8 @@ int main() {
             RenderLayout(&form);
         EndDrawing();
     }
+
+    Layout_dtor(&form);
 
     CloseWindow();
 }

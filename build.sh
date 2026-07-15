@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CSRCS="main.c layout.c"
+CSRCS="main.c layout.c builder.c"
 INCLUDE="-lraylib"
 INCLUDE_BREW="-I/opt/homebrew/include -L/opt/homebrew/lib"
 INCLUDE_DARWIN="-framework Cocoa -framework IOKit -framework CoreVideo -framework OpenGL"
